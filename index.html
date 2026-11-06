@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MSD ALPHA PRO - Wallet Shield & Guard</title>
+    <style>
+        :root {
+            --bg-main: #0b0e11;
+            --bg-card: #161a1e;
+            --bg-input: #1e2329;
+            --border: #2b3139;
+            --gold: #f0b90b;
+            --green: #0ecb81;
+            --red: #f6465d;
+            --text-main: #eaecef;
+            --text-muted: #848e9c;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 80px; overflow-x: hidden; }
+
+        /* Header */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; color: var(--text-main); }
+        .pro-badge { background: var(--gold); color: #000; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
+        .live-pill {
+            display: flex; align-items: center; gap: 6px; background: rgba(14, 203, 129, 0.12);
+            color: var(--green); border: 1px solid rgba(14, 203, 129, 0.3);
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+        }
+        .live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; box-shadow: 0 0 6px var(--green); }
+
+        /* Container & Cards */
+        .container { padding: 12px; }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px; margin-bottom: 12px;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-size: 14px; font-weight: 700;
+        }
+        .sub-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+        /* Portfolio Top Card */
+        .bal-title { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+        .bal-amount { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+        .shield-row {
+            display: flex; justify-content: space-between; font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            width: 100%; height: 6px; background: var(--bg-input);
+            border-radius: 4px; overflow: hidden; margin-bottom: 14px;
+        }
+        .progress-fill {
+            height: 100%; width: 0%; background: var(--green); transition: width 0.3s ease;
+        }
+        .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .quick-btn {
+            background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px 4px; text-align: center; color: var(--text-main); font-size: 11px;
+            font-weight: 600; cursor: pointer;
+        }
+        .quick-btn span { display: block; font-size: 18px; margin-bottom: 4px; }
+
+        /* Wallet Rows */
+        .wallet-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
+        .wallet-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .wallet-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .wallet-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+        .wallet-bal { font-weight: 800; font-size: 15px; color: #fff; text-align: right; }
+        .badge {
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-align: center;
+        }
+        .badge-green { background: rgba(14, 203, 129, 0.15); color: var(--green); }
+        .badge-gold { background: rgba(240, 185, 11, 0.15); color: var(--gold); }
+        .badge-red { background: rgba(246, 70, 93, 0.15); color: var(--red); }
+
+        /* Inputs & Grids */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .field { margin-bottom: 10px; }
+        .field-label {
+            display: flex; justify-content: space-between; font-size: 11px;
+            color: var(--text-muted); margin-bottom: 5px; font-weight: 600;
+        }
+        .input-box {
+            display: flex; align-items: center; background: var(--bg-input);
+            border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+        }
+        .input-box input, .input-box select {
+            width: 100%; background: transparent; border: none; color: #fff;
+            padding: 10px 12px; font-size: 14px; font-weight: 700; outline: none;
+        }
+        .input-box select option { background: var(--bg-card); color: #fff; }
+
+        /* Stat Boxes */
+        .stat-box {
+            background: var(--bg-main); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px;
+        }
+        .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+        .stat-val { font-size: 15px; font-weight: 800; color: #fff; }
+
+        /* Rule Checklist */
+        .rule-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; background: var(--bg-main); border: 1px solid var(--border);
+            border-radius: 8px; margin-bottom: 8px; font-size: 12px;
+        }
+
+        /* Buttons */
+        .btn-gold {
+            width: 100%; background: var(--gold); color: #000; border: none;
+            padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; margin-top: 6px;
+        }
+        .btn-green {
+            width: 100%; background: var(--green); color: #000; border: none;
+            padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; margin-top: 6px;
+        }
+        .btn-red {
+            width: 100%; background: rgba(246, 70, 93, 0.15); color: var(--red); border: 1px solid var(--red);
+            padding: 12px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; margin-top: 6px;
+        }
+        .btn-dark {
+            width: 100%; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);
+            padding: 11px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-card);
+            border-top: 1px solid var(--border); display: flex; justify-content: space-around;
+            padding: 8px 0; z-index: 100;
+        }
+        .nav-item {
+            color: var(--text-muted); text-align: center; font-size: 11px;
+            font-weight: 600; cursor: pointer; flex: 1;
+        }
+        .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">⚡ MSD ALPHA <span class="pro-badge">PRO</span></div>
+        <div class="live-pill" id="headerPill">
+            <span class="live-dot" id="headerDot"></span>
+            <span id="headerStatus">SHIELD ACTIVE</span>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- TAB 1: HOME (WALLET SHIELD OVERVIEW) -->
+        <div id="tab-home" class="tab-view active">
+            <div class="card">
+                <div class="bal-title">Total Protected Portfolio Balance (USDT)</div>
+                <div class="bal-amount" id="homeTotalBal">$1,000.00</div>
+                <div class="shield-row">
+                    <span>Daily Risk Shield: <strong id="homeShieldStatus" style="color: var(--green);">ACTIVE</strong></span>
+                    <span>Used: <strong id="homeUsedPct">0.0%</strong> / <span id="homeMaxPct">5%</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="riskProgressBar"></div>
+                </div>
+                <div class="quick-grid">
+                    <div class="quick-btn" onclick="openTab(1)"><span>💼</span>Wallets</div>
+                    <div class="quick-btn" onclick="openTab(2)"><span>🧮</span>Risk Calc</div>
+                    <div class="quick-btn" onclick="openTab(3)"><span>🛡️</span>Drawdown</div>
+                    <div class="quick-btn" onclick="triggerCooldownLock()"><span>🔒</span>Lock 24h</div>
+                </div>
+            </div>
+
+            <!-- Connected Exchange Wallets Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <span>🔗 Protected Exchange Wallets</span>
+                    <span class="sub-label" onclick="openTab(1)" style="color: var(--gold); cursor: pointer;">+ Manage</span>
+                </div>
+
+                <div class="wallet-row" onclick="openTab(1)">
+                    <div>
+                        <div class="wallet-name">🟡 Binance Wallet</div>
+                        <div class="wallet-sub" id="homeBinStatus">Spot & Futures Shield</div>
+                    </div>
+                    <div>
+                        <div class="wallet-bal" id="homeBinBal">$600.00</div>
+                        <div style="text-align: right; margin-top: 4px;">
+                            <span class="badge badge-green" id="homeBinBadge">PROTECTED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wallet-row" onclick="openTab(1)">
+                    <div>
+                        <div class="wallet-name">🟠 Bybit Wallet</div>
+                        <div class="wallet-sub" id="homeBybStatus">Unified Trading Shield</div>
+                    </div>
+                    <div>
+                        <div class="wallet-bal" id="homeBybBal">$400.00</div>
+                        <div style="text-align: right; margin-top: 4px;">
+                            <span class="badge badge-green" id="homeBybBadge">PROTECTED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Wallet Protection Rules -->
+            <div class="card">
+                <div class="card-header">
+                    <span>⚡ Active Wallet Security Rules</span>
+                    <span class="sub-label">Auto-Check</span>
+                </div>
+                <div class="rule-item">
+                    <span>1. Capital Preservation Floor</span>
+                    <strong id="ruleFloorVal" style="color: var(--gold);">$900.00 Min</strong>
+                </div>
+                <div class="rule-item">
+                    <span>2. Max Loss Per Single Trade</span>
+                    <strong id="ruleSingleRisk" style="color: var(--green);">$10.00 (1%)</strong>
+                </div>
+                <div class="rule-item">
+                    <span>3. Consecutive Losses Today</span>
+                    <strong id="ruleLossStreak" style="color: var(--green);">0 / 3 Hits</strong>
+                </div>
+                <div class="rule-item" style="margin-bottom: 0;">
+                    <span>4. Emotional Cooldown Lock</span>
+                    <strong id="ruleLockState" style="color: var(--green);">UNLOCKED</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: WALLETS (BINANCE & BYBIT WALLET MANAGER) -->
+        <div id="tab-wallets" class="tab-view">
+            <!-- Binance Wallet Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>🟡 Binance Wallet Setup</span>
+                    <span class="badge badge-green" id="binConnectBadge">ACTIVE</span>
+                </div>
+                <div class="grid-2">
+                    <div class="field">
+                        <div class="field-label"><span>Binance Balance ($)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="binBalInput" value="600" oninput="saveWallets()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label"><span>Max Daily Risk (%)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="binRiskInput" value="5" oninput="saveWallets()">
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label"><span>Binance Read-Only API Key (Optional)</span></div>
+                    <div class="input-box">
+                        <input type="text" id="binApiKey" placeholder="Paste Binance Read-Only API Key" oninput="saveWallets()">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label"><span>Binance Wallet Address / UID</span></div>
+                    <div class="input-box">
+                        <input type="text" id="binUid" placeholder="Enter Binance UID or USDT Address" oninput="saveWallets()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bybit Wallet Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>🟠 Bybit Wallet Setup</span>
+                    <span class="badge badge-green" id="bybConnectBadge">ACTIVE</span>
+                </div>
+                <div class="grid-2">
+                    <div class="field">
+                        <div class="field-label"><span>Bybit Balance ($)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="bybBalInput" value="400" oninput="saveWallets()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label"><span>Max Daily Risk (%)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="bybRiskInput" value="5" oninput="saveWallets()">
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label"><span>Bybit Read-Only API Key (Optional)</span></div>
+                    <div class="input-box">
+                        <input type="text" id="bybApiKey" placeholder="Paste Bybit Read-Only API Key" oninput="saveWallets()">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field-label"><span>Bybit Wallet Address / UID</span></div>
+                    <div class="input-box">
+                        <input type="text" id="bybUid" placeholder="Enter Bybit UID or USDT Address" oninput="saveWallets()">
+                    </div>
+                </div>
+
+                <button class="btn-green" onclick="confirmWalletSave()">💾 SAVE BINANCE & BYBIT WALLETS</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: RISK SHIELD (CAPITAL PROTECTION CALCULATOR) -->
+        <div id="tab-risk" class="tab-view">
+            <div class="card">
+                <div class="card-header">
+                    <span>🧮 Wallet Risk & Position Shield</span>
+                    <span class="sub-label">Pre-Trade Safety Check</span>
+                </div>
+
+                <div class="field">
+                    <div class="field-label"><span>Select Wallet to Protect</span></div>
+                    <div class="input-box">
+                        <select id="calcWalletSelect" onchange="syncCalcWallet()">
+                            <option value="TOTAL">Total Portfolio (Binance + Bybit)</option>
+                            <option value="BINANCE">Binance Wallet Only</option>
+                            <option value="BYBIT">Bybit Wallet Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <div class="field-label"><span>Protected Balance ($)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="calcBal" value="1000" oninput="runRiskCheck()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label"><span>Risk Per Trade (%)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="calcRiskPct" value="1" step="0.1" oninput="runRiskCheck()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <div class="field-label"><span>Stop-Loss Distance (%)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="calcSlPct" value="1.5" step="0.1" oninput="runRiskCheck()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label"><span>Planned Leverage (x)</span></div>
+                        <div class="input-box">
+                            <input type="number" id="calcLev" value="10" oninput="runRiskCheck()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="stat-box">
+                        <div class="stat-label">Safe Risk Amount</div>
+                        <div class="stat-val" id="outRiskDollar" style="color: var(--red);">$10.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Max Position Size</div>
+                        <div class="stat-val" id="outMaxPos">$666.67</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Required Margin</div>
+                        <div class="stat-val" id="outMarginReq">$66.67</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Max Safe Leverage</div>
+                        <div class="stat-val" id="outSafeLev" style="color: var(--gold);">50x</div>
+                    </div>
+                </div>
+
+                <div class="stat-box" style="margin-bottom: 10px;">
+                    <div class="stat-label">Wallet Shield Verdict</div>
+                    <div class="stat-val" id="outSafetyVerdict" style="color: var(--green); font-size: 13px;">
+                        ✅ SAFE: Risk is within 1% wallet preservation limit
+                    </div>
+                </div>
+
+                <button class="btn-gold" onclick="recordLossHit()">⚠️ RECORD STOP-LOSS HIT ON WALLET</button>
+            </div>
+        </div>
+
+        <!-- TAB 4: GUARD (DAILY DRAWDOWN & COOLDOWN LOCK) -->
+        <div id="tab-guard" class="tab-view">
+            <div class="card">
+                <div class="card-header">
+                    <span>🛡️ Daily Drawdown & Capital Floor</span>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <div class="field-label"><span>Max Daily Drawdown (%)</span></div>
+                        <div class="input
