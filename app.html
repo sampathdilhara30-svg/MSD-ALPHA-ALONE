@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b0e11">
+<title>MSD ALPHA Pro Terminal</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: #0b0e11; color: #eaecef; padding-bottom: 75px; overflow-x: hidden; }
+  
+  /* Top Header */
+  .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #181a20; border-bottom: 1px solid #2b3139; position: sticky; top: 0; z-index: 50; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; color: #fcd535; letter-spacing: 0.5px; }
+  .live-pill { display: flex; align-items: center; gap: 6px; background: #2b3139; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #0ecb81; font-weight: 600; }
+  .dot { width: 7px; height: 7px; background: #0ecb81; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+  /* Pages */
+  .page { display: none; padding: 14px; }
+  .page.active { display: block; }
+
+  /* Binance Style Cards */
+  .card { background: #181a20; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #2b3139; }
+  .bal-label { font-size: 12px; color: #848e9c; }
+  .bal-val { font-size: 28px; font-weight: 800; color: #eaecef; margin: 4px 0 12px; }
+  
+  /* Quick Action Grid */
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; margin: 14px 0; }
+  .q-btn { background: #2b3139; padding: 10px 4px; border-radius: 8px; font-size: 11px; color: #eaecef; font-weight: 600; cursor: pointer; }
+  .q-btn span { display: block; font-size: 18px; margin-bottom: 4px; }
+
+  /* Market Ticker List */
+  .sec-title { font-size: 14px; font-weight: 700; color: #eaecef; margin-bottom: 12px; display: flex; justify-content: space-between; }
+  .coin-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #2b3139; cursor: pointer; }
+  .coin-row:last-child { border-bottom: none; }
+  .c-name { font-weight: 700; font-size: 15px; }
+  .c-sub { font-size: 11px; color: #848e9c; }
+  .c-price { font-weight: 700; font-size: 15px; text-align: right; }
+  .c-chg { padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; min-width: 72px; text-align: center; }
+  .up { background: rgba(14, 203, 129, 0.15); color: #0ecb81; }
+  .down { background: rgba(246, 70, 93, 0.15); color: #f6465d; }
+
+  /* Futures Calculator UI */
+  .side-tabs { display: grid; grid-template-columns: 1fr 1fr; background: #0b0e11; border-radius: 8px; padding: 3px; margin-bottom: 14px; }
+  .side-btn { padding: 10px; text-align: center; font-weight: 700; font-size: 13px; border-radius: 6px; color: #848e9c; cursor: pointer; }
+  .side-btn.long.active { background: #0ecb81; color: #0b0e11; }
+  .side-btn.short.active { background: #f6465d; color: #fff; }
+
+  .input-row { margin-bottom: 12px; }
+  .input-lbl { display: flex; justify-content: space-between; font-size: 12px; color: #848e9c; margin-bottom: 5px; }
+  .input-box { display: flex; background: #2b3139; border-radius: 8px; overflow: hidden; border: 1px solid transparent; }
+  .input-box:focus-within { border-color: #fcd535; }
+  .input-box input { width: 100%; background: transparent; border: none; color: #fff; padding: 11px 12px; font-size: 14px; font-weight: 600; outline: none; }
+  .input-tag { background: #363c45; color: #fcd535; font-size: 11px; font-weight: 700; padding: 0 12px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
+
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .res-item { background: #0b0e11; padding: 12px; border-radius: 8px; border: 1px solid #2b3139; }
+  .res-item .lbl { font-size: 11px; color: #848e9c; }
+  .res-item .val { font-size: 15px; font-weight: 800; margin-top: 4px; }
+
+  .btn-yellow { width: 100%; background: #fcd535; color: #181a20; border: none; padding: 13px; border-radius: 8px; font-weight: 800; font-size: 14px; margin-top: 14px; cursor: pointer; }
+  .btn-outline { width: 100%; background: #2b3139; color: #eaecef; border: none; padding: 11px; border-radius: 8px; font-weight: 600; font-size: 13px; margin-top: 8px; cursor: pointer; }
+
+  /* Progress Bar */
+  .p-bg { width: 100%; height: 8px; background: #2b3139; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .p-fill { height: 100%; background: #0ecb81; width: 0%; transition: 0.3s; }
+
+  /* Bottom Navigation */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 62px; background: #181a20; border-top: 1px solid #2b3139; display: grid; grid-template-columns: repeat(4, 1fr); z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #848e9c; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .nav-item.active { color: #fcd535; }
+  .nav-icon { font-size: 19px; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="brand">⚡ MSD ALPHA <span style="font-size:10px; background:#fcd535; color:#000; padding:2px 5px; border-radius:4px;">PRO</span></div>
+    <div class="live-pill"><div class="dot"></div> <span id="netStatus">BINANCE LIVE</span></div>
+  </div>
+
+  <!-- TAB 1: HOME (Binance Style Dashboard) -->
+  <div id="page-home" class="page active">
+    <div class="card">
+      <div class="bal-label">Estimated Portfolio Balance (USDT)</div>
+      <div class="bal-val" id="homeBal">$1,000.00</div>
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:#848e9c;">
+        <span>Daily Risk Shield: <b id="shieldStatus" style="color:#0ecb81;">ACTIVE</b></span>
+        <span>Used: <b id="homeLossPct" style="color:#eaecef;">0%</b> / 5%</span>
+      </div>
+      <div class="p-bg"><div class="p-fill" id="homeLossBar"></div></div>
+
+      <div class="quick-grid">
+        <div class="q-btn" onclick="switchTab('trade')"><span>🧮</span>Risk Calc</div>
+        <div class="q-btn" onclick="switchTab('chart')"><span>📈</span>Live Chart</div>
+        <div class="q-btn" onclick="switchTab('guard')"><span>🛡️</span>Drawdown</div>
+        <div class="q-btn" onclick="fetchPrices()"><span>🔄</span>Sync Price</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">
+        <span>🔥 Hot Futures Markets</span>
+        <span style="font-size:11px; color:#848e9c;">Tap coin to calculate</span>
+      </div>
+      <div id="marketList">
+        <div class="coin-row" onclick="selectCoin('BTCUSDT')">
+          <div><div class="c-name">BTC <span style="font-size:11px;color:#848e9c;">/USDT</span></div><div class="c-sub">Bitcoin Perp</div></div>
+          <div class="c-price" id="p-BTCUSDT">$86,000.00</div>
+          <div class="c-chg up" id="c-BTCUSDT">+0.00%</div>
+        </div>
+        <div class="coin-row" onclick="selectCoin('ETHUSDT')">
+          <div><div class="c-name">ETH <span style="font-size:11px;color:#848e9c;">/USDT</span></div><div class="c-sub">Ethereum Perp</div></div>
+          <div class="c-price" id="p-ETHUSDT">$3,100.00</div>
+          <div class="c-chg up" id="c-ETHUSDT">+0.00%</div>
+        </div>
+        <div class="coin-row" onclick="selectCoin('SOLUSDT')">
+          <div><div class="c-name">SOL <span style="font-size:11px;color:#848e9c;">/USDT</span></div><div class="c-sub">Solana Perp</div></div>
+          <div class="c-price" id="p-SOLUSDT">$185.00</div>
+          <div class="c-chg up" id="c-SOLUSDT">+0.00%</div>
+        </div>
+        <div class="coin-row" onclick="selectCoin('BNBUSDT')">
+          <div><div class="c-name">BNB <span style="font-size:11px;color:#848e9c;">/USDT</span></div><div class="c-sub">BNB Perp</div></div>
+          <div class="c-price" id="p-BNBUSDT">$620.00</div>
+          <div class="c-chg up" id="c-BNBUSDT">+0.00%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: LIVE CHART -->
+  <div id="page-chart" class="page">
+    <div class="card" style="padding:10px;">
+      <div class="sec-title" style="margin-bottom:8px;">
+        <span id="chartTitle">📊 BTCUSDT Live Chart (15m)</span>
+      </div>
+      <div style="height:430px; width:100%; border-radius:8px; overflow:hidden;">
+        <iframe id="tvFrame" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FColombo" style="width:100%; height:100%; border:none;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: FUTURES RISK ENGINE -->
+  <div id="page-trade" class="page">
+    <div class="card">
+      <div class="side-tabs">
+        <div class="side-btn long active" id="btnLong" onclick="setSide('LONG')">Buy / Long</div>
+        <div class="side-btn short" id="btnShort" onclick="setSide('SHORT')">Sell / Short</div>
+      </div>
+
+      <div class="res-grid" style="margin-top:0; margin-bottom:12px;">
+        <div class="input-row" style="margin:0;">
+          <div class="input-lbl"><span>Wallet Balance ($)</span></div>
+          <div class="input-box"><input type="number" id="bal" value="1000" oninput="calc()"></div>
+        </div>
+        <div class="input-row" style="margin:0;">
+          <div class="input-lbl"><span>Risk %</span><span id="levTxt" style="color:#fcd535;">10x Lev</span></div>
+          <div class="input-box"><input type="number" id="risk" value="1" step="0.1" oninput="calc()"></div>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <div class="input-lbl"><span>Leverage: <b id="levVal" style="color:#fcd535;">10x</b></span><span>Max Safe: <b id="safeLev">20x</b></span></div>
+        <input type="range" id="lev" min="1" max="100" value="10" style="width:100%; accent-color:#fcd535;" oninput="calc()">
+      </div>
+
+      <div class="input-row">
+        <div class="input-lbl"><span>Entry Price (USDT)</span><span id="activeCoinLbl" style="color:#fcd535;">BTCUSDT</span></div>
+        <div class="input-box">
+          <input type="number" id="entry" value="86000" step="any" oninput="calc()">
+          <div class="input-tag" onclick="fillLiveEntry()">LAST PRICE</div>
+        </div>
+      </div>
+
+      <div class="res-grid" style="margin-top:0;">
+        <div class="input-row">
+          <div class="input-lbl"><span>Stop Loss ($)</span></div>
+          <div class="input-box"><input type="number" id="sl" value="85000" step="any" oninput="calc()"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-lbl"><span>Take Profit ($)</span></div>
+          <div class="input-box"><input type="number" id="tp" value="89000" step="any" oninput="calc()"></div>
+        </div>
+      </div>
+
+      <div class="res-grid">
+        <div class="res-item">
+          <div class="lbl">Max Risk Loss</div>
+          <div class="val" id="outRisk" style="color:#f6465d;">$10.00</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Position Size (USDT)</div>
+          <div class="val" id="outPos" style="color:#fcd535;">$860.00</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Coin Quantity</div>
+          <div class="val" id="outQty">0.0100 BTC</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Required Margin</div>
+          <div class="val" id="outMargin">$86.00</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Est. Liquidation</div>
+          <div class="val" id="outLiq" style="color:#f59e0b;">$77,800</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Target Profit (R:R)</div>
+          <div class="val" id="outReward" style="color:#0ecb81;">+$30.00 (1:3)</div>
+        </div>
+      </div>
+
+      <button class="btn-yellow" onclick="logTrade(false)">⚠️ RECORD STOP-LOSS HIT</button>
+    </div>
+  </div>
+
+  <!-- TAB 4: WALLET GUARD -->
+  <div id="page-guard" class="page">
+    <div class="card">
+      <div class="sec-title">🛡️ Daily Drawdown Guard</div>
+      <div class="input-row">
+        <div class="input-lbl"><span>Max Daily Drawdown Limit (%)</span></div>
+        <div class="input-box"><input type="number" id="maxDaily" value="5" oninput="calc()"></div>
+      </div>
+      <div class="res-grid">
+        <div class="res-item">
+          <div class="lbl">Today's Cumulative Loss</div>
+          <div class="val" id="gTodayLoss" style="color:#f6465d;">$0.00</div>
+        </div>
+        <div class="res-item">
+          <div class="lbl">Max Allowed Daily Loss</div>
+          <div class="val" id="gMaxLoss">$50.00</div>
+        </div>
+      </div>
+      <button class="btn-outline" onclick="resetGuard()">🔄 Reset Daily Tracker</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item" id="nav-chart" onclick="switchTab('chart')"><div class="nav-icon">📊</div>Markets</div>
+    <div class="nav-item" id="nav-trade" onclick="switchTab('trade')"><div class="nav-icon">⚡</div>Futures</div>
+    <div class="nav-item" id="nav-guard" onclick="switchTab('guard')"><div class="nav-icon">🛡️</div>Guard</div>
+  </div>
+
+<script>
+  let side = 'LONG';
+  let activeSymbol = 'BTCUSDT';
+  let livePrices = { BTCUSDT: 86000, ETHUSDT: 3100, SOLUSDT: 185, BNBUSDT: 620 };
+  let todayLoss = parseFloat(localStorage.getItem('msd_loss')) || 0;
+
+  function switchTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + tab).classList.add('active');
+    document.getElementById('nav-' + tab).classList.add('active');
+  }
+
+  function setSide(s) {
+    side = s;
+    document.getElementById('btnLong').classList.toggle('active', s === 'LONG');
+    document.getElementById('btnShort').classList.toggle('active', s === 'SHORT');
+    calc();
+  }
+
+  function selectCoin(sym) {
+    activeSymbol = sym;
+    document.getElementById('activeCoinLbl').innerText = sym;
+    document.getElementById('entry').value = livePrices[sym];
+    document.getElementById('chartTitle').innerText = '📊 ' + sym + ' Live Chart (15m)';
+    document.getElementById('tvFrame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${sym}&interval=15&theme=dark&style=1&timezone=Asia%2FColombo`;
+    calc();
+    switchTab('trade');
+  }
+
+  function fillLiveEntry() {
+    if (livePrices[activeSymbol]) {
+      document.getElementById('entry').value = livePrices[activeSymbol];
+      calc();
+    }
+  }
+
+  async function fetchPrices() {
+    try {
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT"]');
+      const data = await res.json();
+      data.forEach(item => {
+        const p = parseFloat(item.lastPrice);
+        const chg = parseFloat(item.priceChangePercent).toFixed(2);
+        livePrices[item.symbol] = p;
+        const pEl = document.getElementById('p-' + item.symbol);
+        const cEl = document.getElementById('c-' + item.symbol);
+        if (pEl) pEl.innerText = '$' + (p > 100 ? p.toLocaleString(undefined, {minimumFractionDigits: 2}) : p.toFixed(2));
+        if (cEl) {
+          cEl.innerText = (chg >= 0 ? '+' : '') + chg + '%';
+          cEl.className = 'c-chg ' + (chg >= 0 ? 'up' : 'down');
+        }
+      });
+    } catch (e) {
+      document.getElementById('netStatus').innerText = 'OFFLINE MODE';
+    }
+  }
+
+  function calc() {
+    const bal = parseFloat(document.getElementById('bal').value) || 0;
+    const riskPct = parseFloat(document.getElementById('risk').value) || 0;
+    const lev = parseFloat(document.getElementById('lev').value) || 1;
+    const entry = parseFloat(document.getElementById('entry').value) || 0;
+    const sl = parseFloat(document.getElementById('sl').value) || 0;
+    const tp = parseFloat(document.getElementById('tp').value) || 0;
+    const maxDailyPct = parseFloat(document.getElementById('maxDaily').value) || 5;
+
+    document.getElementById('levVal').innerText = lev + 'x';
+    document.getElementById('levTxt').innerText = lev + 'x Lev';
+    document.getElementById('homeBal').innerText = '$' + bal.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+    const riskAmt = bal * (riskPct / 100);
+    const slDist = entry > 0 ? Math.abs(entry - sl) / entry : 0;
+    const posUsdt = slDist > 0 ? (riskAmt / slDist) : 0;
+    const coinQty = entry > 0 ? (posUsdt / entry) : 0;
+    const margin = posUsdt / lev;
+    const safeLev = slDist > 0 ? Math.max(1, Math.floor(1 / slDist)) : 10;
+
+    const liqPrice = side === 'LONG' ? entry * (1 - (1 / lev) + 0.004) : entry * (1 + (1 / lev) - 0.004);
+    const tpDist = entry > 0 ? Math.abs(tp - entry) / entry : 0;
+    const reward = posUsdt * tpDist;
+    const rr = riskAmt > 0 ? (reward / riskAmt).toFixed(1) : 0;
+
+    document.getElementById('safeLev').innerText = safeLev + 'x';
+    document.getElementById('outRisk').innerText = '$' + riskAmt.toFixed(2);
+    document.getElementById('outPos').innerText = '$' + posUsdt.toFixed(2);
+    document.getElementById('outQty').innerText = coinQty.toFixed(4) + ' ' + activeSymbol.replace('USDT','');
+    document.getElementById('outMargin').innerText = '$' + margin.toFixed(2);
+    document.getElementById('outLiq').innerText = '$' + (liqPrice > 0 ? liqPrice.toFixed(2) : '0.00');
+    document.getElementById('outReward').innerText = '+$' + reward.toFixed(2) + ' (1:' + rr + ')';
+
+    const maxLoss = bal * (maxDailyPct / 100);
+    const usedPct = maxLoss > 0 ? Math.min(100, (todayLoss / maxLoss) * 100) : 0;
+    document.getElementById('gTodayLoss').innerText = '$' + todayLoss.toFixed(2);
+    document.getElementById('gMaxLoss').innerText = '$' + maxLoss.toFixed(2);
+    document.getElementById('homeLossPct').innerText = usedPct.toFixed(0) + '%';
+    document.getElementById('homeLossBar').style.width = usedPct + '%';
+    document.getElementById('homeLossBar').style.background = usedPct >= 100 ? '#f6465d' : '#0ecb81';
+    document.getElementById('shieldStatus').innerText = usedPct >= 100 ? 'LOCKED ⚠️' : 'ACTIVE';
+    document.getElementById('shieldStatus').style.color = usedPct >= 100 ? '#f6465d' : '#0ecb81';
+  }
+
+  function logTrade() {
+    const bal = parseFloat(document.getElementById('bal').value) || 0;
+    const riskPct = parseFloat(document.getElementById('risk').value) || 0;
+    todayLoss += bal * (riskPct / 100);
+    localStorage.setItem('msd_loss', todayLoss);
+    calc();
+    switchTab('guard');
+  }
+
+  function resetGuard() {
+    todayLoss = 0;
+    localStorage.setItem('msd_loss', 0);
+    calc();
+  }
+
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(() => {}); }
+  fetchPrices();
+  setInterval(fetchPrices, 5000);
+  calc();
+</script>
+</body>
+            </html>
+            
